@@ -43,12 +43,12 @@ $(document).ready(function() {
         return false;
     });
 
-    function FetchStockAvailable(medication_name) {
+    function FetchStockAvailable(medicationName, callbackStockAvailable) {
         dataIn = {
             'type' : 'stock_available',
-            'key'  : medication_name
+            'key'  : medicationName
         }
-        return $.ajax({
+        $.ajax({
             type        : 'POST', // define the type of HTTP verb we want to use (POST for our form)
             url         : 'fetch_value.php', // the url where we want to POST
             data        : dataIn,
@@ -56,9 +56,9 @@ $(document).ready(function() {
             encode      : true
         }).done(function(dataOut) {
             if (dataOut.success) {
-                return dataOut.results;
+                callbackStockAvailable(dataOut.results);
             } else {
-                return 0;
+                callbackStockAvailable(0);
             }
         });
     }
@@ -66,51 +66,23 @@ $(document).ready(function() {
     $('#medication_names').change(function() {
         var selectedValue = $('#medication_names').val();
         if (selectedValue != '') {
-            dataIn = {
-                'type' : 'stock_available',
-                'key'  : selectedValue
-            }
-            $.ajax({
-                type        : 'POST', // define the type of HTTP verb we want to use (POST for our form)
-                url         : 'fetch_value.php', // the url where we want to POST
-                data        : dataIn,
-                dataType    : 'json', // what type of data do we expect back from the server
-                encode      : true
-            }).done(function(dataOut) {
-                $success = dataOut.success;
-                if ($success) {
-                    $('#stock_available_message').removeClass('hidden');
-                    if (dataOut.results > 0) {
-                        $('#stock_available_message').addClass('green');
-                    } else {
-                        $('#stock_available_message').addClass('red');
-                    }
-                    $('#stock_available_message').text(dataOut.results + " Items Available");
-                } else {
-                    var errorDisplayMessage = dataOut.errors[0].displayMessage + " " + dataOut.errors[0].errorMessage;
-                    if (errorDisplayMessage.length != 0) {
-                        $("#medication_names").append('<div class="ui red message form_error">' + errorDisplayMessage + '</div>');
-                    }
-                }
-                if ($success) {
+            FetchStockAvailable(selectedValue, function (stockAvailable) {
+                $('#stock_available_message').removeClass('hidden');
+                $('#stock_available_message').text("" + stockAvailable + " Items Available");
+                if (stockAvailable > 0) {
+                    $('#stock_available_message').addClass('green');
                     $('#sale_amount_field').removeClass('disabled');
                     $('#add_sale_submit_button').removeClass('disabled');
-                }
-            });
-            
+                } else {
+                    $('#stock_available_message').addClass('red');
+                }     
+            });                   
         } else {
             $('#sale_amount_field').addClass('disabled');
             $('#add_sale_submit_button').addClass('disabled');
             $('#stock_available_message').addClass('hidden');
         }
-    });
-
-    // Custom form validation rule for sale amount
-    $.fn.form.settings.rules.saleAmountBound = function(saleAmount) {
-        var stock_available = FetchStockAvailable($('#medication_names').val());
-        console.log(stock_available);
-        return saleAmount < stock_available;
-    }
+    });   
 
     // Form Validation
     $('.ui.form').form({
@@ -217,7 +189,7 @@ $(document).ready(function() {
                         prompt : 'Please enter the sale amount.' 
                     },
                     {
-                        type: 'saleAmountBound[saleAmount]',
+                        type: 'integer',
                         prompt: 'Please enter a valid sale amount.'
                     }
                 ]
