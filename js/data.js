@@ -12,10 +12,12 @@ $(document).ready(function() {
             encode      : true
         }).done(function(dataOut) {
             if (dataOut.success) {
+                // Add an empty option in dropdown
                 $("#" + listId).append('<option value="">---</option>');
                 var numberOfRows = dataOut.results.length;
                 for (var rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
                     $.each(dataOut.results[rowIndex], function(key, value) {
+                        // Add each option with value = value and text = value
                         $("#" + listId).append('<option value="' + value + '">' + value + '</option>');
                     });
                 }
@@ -49,16 +51,20 @@ $(document).ready(function() {
             } else {
                 var numberOfRows = dataOut.results.length;
                 for (var rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
+                    // Add tags to start the row
                     var $tr = $('<tr></tr>');
                     $.each(dataOut.results[rowIndex], function(key, value) {
+                        // If there is an empty value replace it with '-'
                         if (value === null || value === '') {
                             value = '-';
                         }
+                        // Add a column/cell in the row
                         $tr.append('<td class="' + key + '">' + value + '</td>');
                     });
                     $('.table_body').append($tr);
                 }
             }
+            // Edit the toolbar of the table
             $("#" + tableId).DataTable({
                 "sDom": '<"toolbar">frtip'
             });

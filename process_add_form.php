@@ -219,7 +219,8 @@ if ($success) {
                 $stock_available = $fetchedResult->stock_available;
                 // Check if sale amount is a legal amount.
                 $success = $sale_amount > 0 && $sale_amount <= $stock_available;
-                if(!$success) {
+
+                if (!$success) {
                     $errorMessage = "Cannot sell an amount of: " . $sale_amount . ". Stock available: " . $stock_available;
                 }
             } else {
@@ -232,6 +233,16 @@ if ($success) {
                 $success = $query->execute(array(':medication_id' => $medication_id, ':sale_amount' => $sale_amount));
                 if (!$success) {
                     $errorMessage = "Insertion Failed.";
+                }
+            }
+            // All good, reduce the stock available
+            if ($success) {
+                $new_stock_available = $stock_available - $sale_amount;
+                $sql = 'UPDATE Medications SET stock_available = (:new_stock_available) WHERE medication_id = (:medication_id)';
+                $query = $connection->prepare($sql);
+                $success = $query->execute(array(':new_stock_available' => $new_stock_available, ':medication_id' => $medication_id));
+                if (!$success) {
+                    $errorMessage = "Updated of Medications Table Failed.";
                 }
             }
         }

@@ -3,7 +3,6 @@ $(document).ready(function() {
         var formValid = $(this).form('is valid');
 
         if (!formValid) {
-            console.log("Form is invalid.");
             event.preventDefault();
             return false;
         }
